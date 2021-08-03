@@ -184,7 +184,7 @@ async def give(ctx, number: int):
             state["cardlists"][state["turncount"]-1].append(number)
             await state["player_list"][state["turncount"]-1].create_dm()
             await state["player_list"][state["turncount"]-1].dm_channel.send("the following is your new card!")
-            await state["player_list"][state["turncount"]-1].dm_channel.send(file=discord.File("/home/naomi/DiscordBot/expk-cards/" + str(number) + ".jpg"))
+            await state["player_list"][state["turncount"]-1].dm_channel.send(file=discord.File("expk-cards/" + str(number) + ".jpg"))
             state["num"] = 0
         else:
             await ctx.send("pfft you joker! You don't have that one!")
@@ -230,7 +230,7 @@ async def start(ctx):
             state["cardlists"][k].append(k+5)
             await state["player_list"][k].create_dm()
             for i in state["cardlists"][k]:
-                await state["player_list"][k].dm_channel.send(file=discord.File("/home/naomi/DiscordBot/expk-cards/" + str(i) + ".jpg"))
+                await state["player_list"][k].dm_channel.send(file=discord.File("expk-cards/" + str(i) + ".jpg"))
         del state["numlist"][0:4*len(state["player_set"])]
         for x in range (len(state["player_set"])-1):
             state["numlist"].insert(random.randint(0,len(state["numlist"])), x+1)
@@ -265,7 +265,7 @@ async def draw(ctx):
         else:
             state["cardlists"][state["turncount"]-1].append(state["numlist"][0])
             await state["player_list"][state["turncount"]-1].create_dm()
-            await state["player_list"][state["turncount"]-1].dm_channel.send(file=discord.File("/home/naomi/DiscordBot/expk-cards/" + str(state["numlist"][0]) + ".jpg"))
+            await state["player_list"][state["turncount"]-1].dm_channel.send(file=discord.File("expk-cards/" + str(state["numlist"][0]) + ".jpg"))
             del state["numlist"][0]
             await turn()
     else:
