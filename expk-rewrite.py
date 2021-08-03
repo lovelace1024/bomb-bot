@@ -26,7 +26,7 @@ state = {
 "cardtypes": list(cards_dict.values()),
 "expk": 0,
 "cardnum":0, "num": 0,
-"cardlists": [x for x in players_dict.keys()],
+"cardlists": [x for x in players_dict.values()],
 "turncount": 1,
 "attackcount":0, "nopecount":0, "nopetrigger":0, "actioncount": 0,
 "numlist": [],
@@ -111,7 +111,7 @@ async def dm(ctx):
 	"watch out for a stabbing",
 	'watch out for the dynamite on your chair',
 	"Watch me bring the fire and set the night alight"
-    ]  
+    ]
     response = random.choice(dms)
     for i in ctx.message.mentions:
         await i.create_dm()
