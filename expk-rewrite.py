@@ -59,13 +59,11 @@ async def on_ready():
 #========================================================
 #Getting info from the dictionary------------------------
 def keys_from_values(dict, values_list):
-    keys_list = list()
     items_list = dict.items()
     for item  in items_list:
         for k in values_list:
             if k in item[1]:
-                keys_list.append(item[0])
-    return  keys_list
+                yield item[0]
 def key_val_pairs(dict, values_list):
     pairs_list = list()
     items_list = dict.items()
@@ -108,9 +106,16 @@ async def bang(ctx):
         await ctx.message.channel.send(i.name + "exploded")
 @bot.command(name='dm', help='sends a sneaky msg to @someone')
 async def dm(ctx):
+    dms = [
+	"boom boom want u in my room",
+	"watch out for a stabbing",
+	'watch out for the dynamite on your chair',
+	"Watch me bring the fire and set the night alight"
+    ]  
+    response = random.choice(dms)
     for i in ctx.message.mentions:
         await i.create_dm()
-        await i.dm_channel.send("boom boom want u in my room")
+        await i.dm_channel.send(response)
     await ctx.message.delete()
 @bot.command()
 async def clear(ctx, amount):
@@ -368,7 +373,8 @@ async def favor(ctx):
                             state["num"] = state["player_list"].index(i) + 1
                             await i.create_dm()
                             card_numbers = key_val_pairs(card_name_to_num, state["cardlists"][state["num"]-1])
-                            await i.dm_channel.send(f"List of your cards and their numbers: {' - '.join(str(k) for k in card_numbers)}.")
+                            cardlist = ' - '.join(str(k) for k in card_numbers)
+                            await i.dm_channel.send("List of your cards and their numbers: "+cardlist)
                             await i.dm_channel.send("Type $give followed by a number to indicate which card of yours to share.")
                             state["cardlists"][state["turncount"]-1].remove(x)
                     break
