@@ -286,7 +286,9 @@ async def shuffle(ctx):
                 if x in state["cardlists"][state["turncount"]-1]:
                     state["cardlists"][state["turncount"]-1].remove(x)
                     await ctx.send(str(state["player_list"][state["turncount"]-1]) + " shuffled!")
-                    random.shuffle(state["numlist"])
+                    help_list = state["numlist"] #NOT TESTED YET!
+                    random.shuffle(help_list)   # To be tried out
+                    state["numlist"] = help_list
                     break
                 else:
                     continue
