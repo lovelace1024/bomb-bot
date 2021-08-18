@@ -25,8 +25,9 @@ state = {
 #dfe: 6
 "cardtypes": list(cards_dict.values()),
 "expk": 0,
-"cardnum":0, "num": 0,
-"cardlists": [x for x in players_dict.values()],
+"cardnum":0,
+"num": 0,
+"cardlists": list(players_dict.values()),
 "turncount": 1,
 "attackcount":0, "nopecount":0, "nopetrigger":0, "actioncount": 0,
 "numlist": [],
@@ -58,18 +59,39 @@ async def on_ready():
     print('yippee')
 #========================================================
 #Getting info from the dictionary------------------------
+def valueset(dict):
+    return set().union(*dict.values())
+def intersection(lst1, lst2):
+    lst3 = [value for value in lst1 if value in lst2]
+    return lst3
+
 def keys_from_values(dict, values_list):
+    keys_list = list()
     items_list = dict.items()
     for item  in items_list:
         for k in values_list:
             if k in item[1]:
-                yield item[0]
+                keys_list.append(item[0])
+    return keys_list
+
+def key_from_number(dict, number):
+    if number not in valueset(dict):
+        return "Not found"
+    else:
+        for item in dict.items():
+            if number in item[1]:
+                return item[0]
+
 def key_val_pairs(dict, values_list):
     pairs_list = list()
     items_list = dict.items()
-    for item  in items_list:
-        if item[1] in values_list:
-            pairs_list.append(item)
+    for item in items_list:
+        if len(intersection(item[1],values_list)) == 0:
+            continue
+        else:
+            for k in intersection(item[1],values_list):
+                keyvalpair = f"{item[0]},{k}"
+                pairs_list.append(keyvalpair)
     return  pairs_list
 
 @bot.command(name="namenum")
@@ -218,7 +240,7 @@ async def start(ctx):
             await i.dm_channel.send("You joined the game")
         state["player_list"] = list(state["player_set"])
         state["cardnum"] = sum(state["cardtypes"])
-        print(state["cardnum"])
+        #print(state["cardnum"])
         state["numlist"] = list(range(11,state["cardnum"] + 11))
         random.shuffle(state["numlist"])
         for k in range(len(state["player_set"])):
@@ -236,7 +258,7 @@ async def start(ctx):
             state["numlist"].insert(random.randint(0,len(state["numlist"])), x+1)
         for x in range (5+len(state["player_set"]),11):
             state["numlist"].insert(random.randint(0,len(state["numlist"])), x)
-        print(state["numlist"])
+        #print(state["numlist"])
 @bot.command(name="draw", help="draw a card at the end of your turn")
 async def draw(ctx):
     global state
@@ -372,16 +394,19 @@ async def favor(ctx):
                 if x in state["cardlists"][state["turncount"]-1]:
                     for i in ctx.message.mentions:
                         if i in state["player_list"] and i != state["player_list"][state["turncount"]-1]:
-                            state["num"] = state["player_list"].index(i) + 1
+                            index = state["player_list"].index(i)
+                            state["num"] = index + 1
                             await i.create_dm()
-                            card_numbers = key_val_pairs(card_name_to_num, state["cardlists"][state["num"]-1])
+                            card_numbers = key_val_pairs(card_name_to_num, state["cardlists"][index])
+                            print(card_numbers)
                             cardlist = ' - '.join(str(k) for k in card_numbers)
+                            print(cardlist)
                             await i.dm_channel.send("List of your cards and their numbers: "+cardlist)
                             await i.dm_channel.send("Type $give followed by a number to indicate which card of yours to share.")
                             state["cardlists"][state["turncount"]-1].remove(x)
-                    break
-                else:
-                    continue
+                            break
+                        else:
+                            continue
         else:
             await ctx.send("You've been noped!")
     else:
