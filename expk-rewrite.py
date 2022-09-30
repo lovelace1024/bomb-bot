@@ -6,7 +6,6 @@ from discord import File
 from discord.ext import commands
 from discord.ext.commands import Bot
 import random
-import datetime
 from dotenv import load_dotenv
 load_dotenv()
 TOKEN = os.getenv("TOKEN")
@@ -182,6 +181,20 @@ async def on_reaction_add(reaction, user: discord.User):
     if reaction.message.id == state["message_id"]:
         async for user in reaction.users():
             state["player_set"].add(user)
+#@bot.event
+#async def on_raw_reaction_add(payload):
+#    global state
+#    if payload.message_id == state["message_id"]:
+#        print("member added")
+#        state["player_set"].add(payload.user_id)
+
+#@bot.event
+#async def on_raw_reaction_remove(payload):
+#    global state
+#    if payload.message_id == state["message_id"]:
+#        print("member removed")
+#        state["player_set"].remove(payload.user_id)
+
 
 @bot.command(name="stop", help="forcefully stop an opened game")
 async def shut(ctx):
@@ -297,10 +310,10 @@ async def shuffle(ctx):
     global state
     if ctx.message.author == state["player_list"][state["turncount"]-1] and any(item in state["cardlists"][state["turncount"]-1] for item in range(53,57)) is True:
         state["actioncount"] +=1
-        await asyncio.sleep(7)
+        await asyncio.sleep(4)
         if state["nopetrigger"] == 1:
             await ctx.send("Last call for nopes! You got 5 seconds!")
-            await asyncio.sleep(7)
+            await asyncio.sleep(4)
             state["nopetrigger"] = 0
             state["actioncount"] = 0
         if state["nopecount"] == 0:
@@ -324,10 +337,10 @@ async def skip(ctx):
     global state
     if ctx.message.author == state["player_list"][state["turncount"]-1] and any(item in state["cardlists"][state["turncount"]-1] for item in range(45,49)) is True:
         state["actioncount"] +=1
-        await asyncio.sleep(7)
+        await asyncio.sleep(4)
         if state["nopetrigger"] == 1:
             await ctx.send("Last call for nopes! You got 5 seconds!")
-            await asyncio.sleep(7)
+            await asyncio.sleep(4)
             state["nopetrigger"] = 0
             state["actioncount"] = 0
         if state["nopecount"] == 0:
@@ -357,10 +370,10 @@ async def attack(ctx):
     global state
     if ctx.message.author == state["player_list"][state["turncount"]-1] and any(item in state["cardlists"][state["turncount"]-1] for item in range(41,45)) is True:
         state["actioncount"] +=1
-        await asyncio.sleep(7)
+        await asyncio.sleep(4)
         if state["nopetrigger"] == 1:
             await ctx.send("Last call for nopes! You got 5 seconds!")
-            await asyncio.sleep(7)
+            await asyncio.sleep(4)
             state["nopetrigger"] = 0
             state["actioncount"] = 0
         if state["nopecount"] == 0:
@@ -383,10 +396,10 @@ async def favor(ctx):
     global state
     if ctx.message.author == state["player_list"][state["turncount"]-1] and any(item in state["cardlists"][state["turncount"]-1] for item in range(49,53)) is True:
         state["actioncount"] +=1
-        await asyncio.sleep(7)
+        await asyncio.sleep(4)
         if state["nopetrigger"] == 1:
             await ctx.send("Last call for nopes! You got 5 seconds!")
-            await asyncio.sleep(7)
+            await asyncio.sleep(4)
             state["nopetrigger"] = 0
             state["actioncount"] = 0
         if state["nopecount"] == 0:
@@ -417,10 +430,10 @@ async def seethefuture(ctx):
     global state
     if ctx.message.author == state["player_list"][state["turncount"]-1] and any(item in state["cardlists"][state["turncount"]-1] for item in range(31,36)) is True:
         state["actioncount"] +=1
-        await asyncio.sleep(7)
+        await asyncio.sleep(4)
         if state["nopetrigger"] == 1:
             await ctx.send("Last call for nopes! You got 5 seconds!")
-            await asyncio.sleep(7)
+            await asyncio.sleep(4)
             state["nopetrigger"] = 0
             state["actioncount"] = 0
         if state["nopecount"] == 0:
@@ -475,10 +488,10 @@ async def pair(ctx, user):
             continue
     if ctx.message.author == state["player_list"][state["turncount"]-1] and paircount == 1:
         state["actioncount"] +=1
-        await asyncio.sleep(7)
+        await asyncio.sleep(4)
         if state["nopetrigger"] == 1:
             await ctx.send("Last call for nopes! You got 5 seconds!")
-            await asyncio.sleep(7)
+            await asyncio.sleep(4)
             state["nopetrigger"] = 0
             state["actioncount"] = 0
         if state["nopecount"] == 0:
@@ -497,10 +510,10 @@ async def pair(ctx, user):
                     k = random.choice(state["cardlists"][index])
                     state["cardlists"][index].remove(k)
                     await state["player_list"][index].create_dm()
-                    await state["player_list"][index].dm_channel.send("you lost:" + str(i for i in keys_from_values(card_name_to_num, [k])))
+                    await state["player_list"][index].dm_channel.send("you lost: " + key_from_number(card_name_to_num, k))
                     state["cardlists"][state["turncount"]-1].append(k)
                     await state["player_list"][state["turncount"]-1].create_dm()
-                    await state["player_list"][state["turncount"]-1].dm_channel.send("you got:" + str(i for i in keys_from_values(card_name_to_num, [k])))
+                    await state["player_list"][state["turncount"]-1].dm_channel.send("you got: " + key_from_number(card_name_to_num, k))
                 else:
                     await ctx.send("Sorry that's not allowed!")
         else:
