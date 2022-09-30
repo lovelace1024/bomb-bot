@@ -1,0 +1,41 @@
+THE TAROT CLUB GAME!
+
+Aim: Advance to Sequence 0 and gather a reliable team of allies to help you along the way.
+
+Game setup - decks
+- Affiliations
+	- Character cards (allies)
+	- Race cards?
+	- Pathway (class)
+	- Churches
+	- Other organisations
+- Possessions
+	- Tarot (blasphemy) cards
+	- Recipes
+	- Beyonder characteristics
+	- Artifacts
+	- Uniquenesses
+	- Currency and Property?
+- Locations?
+	- Backlund
+	- The sea
+	- City of Silver
+- Events
+	- Miracles/Calamities
+	- Expeditions
+	
+Game setup - stats
+	- Sequence number
+	- Strength (base physical atk level)
+	- Perception
+	- Vitality (hit points)
+	- Energy (e.g. for divination)
+	- Intelligence (mental atk, success rates)
+	- Charisma
+	- Luck (affects loss of control too)
+Game setup - acting method
+	When you advance to a new sequence, time is needed to digest the potion. The longer you wait, the lower the loss of control for the next 		advancement. You can also consume additional potions at the same level to strengthen your stats (but this increases the risk of berserk).
+
+	
+Cards can be traded between players, and players can trade within their character team too.
+

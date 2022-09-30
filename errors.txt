@@ -1,0 +1,31 @@
+-check why Brian got 10 cards. (he appears to have mine and his)
+#hopefully resolved by resetting the player cards inside the code
+- check why "you don't have that card you cheetah" appeared after I noped (I did have it and it did work).
+#This happened as it checked for having the card after I noped, so I didn't have it at that point.
+- add to turn to say who's turn is next
+#added to turn.
+- pair doesn't work: File "expk.py", line 422, in pair
+    k = random.choice(cardlists[index])
+TypeError: 'set' object is not subscriptable
+#made playerx_cards into a list instead of a set.
+- error in favor
+await i.dm_channel.send(f"List of your cards: {', '.join(k for k in cardlists[num-1])}. Type $give followed by a number to indicate which card of yours to share.")
+TypeError: sequence item 0: expected str instance, int found
+#put str(k). Hopefully this should fix it.
+- insert puts back the defuse not the exploding kitten
+#fixed expk to take the value of the exploding kitten not the defuse used.
+
+-Jenni exploded after defusing
+- wouldn't let her reinsert
+-exploded her
+#move checking if no defuses to before defusing.
+-pair doesn't work after people exploded
+
+============
+Increase nope time
+Say who's turn when people explode
+Remove nope time counters for skip and attack
+Check why people sometimes can't use their cards!!
+MAJOR ERROR FOUND i forgot how range worked so some of the cards were not included.
+Patch fix: adding a dictionary to make the hand and give commands easier.
+Only printing names of cards for see the future to reduce confusion.
