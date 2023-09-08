@@ -63,9 +63,7 @@ class PlayerMenu(Select):
         self.handmaided = False
         target = 0
         for player in self.list:
-            if player.immune == True:
-                print("handmaid")
-                self.list.remove(player)
+            if player.immune == True: self.list.remove(player)
         for player in self.list:
             if player == self.player and not (self.role == "prince"): self.list.remove(player)
         if len(self.list) == 0:
@@ -76,6 +74,12 @@ class PlayerMenu(Select):
             super().__init__(placeholder="Player List", min_values=self.val, max_values = self.val,
             options=[discord.SelectOption(label=player.display_name, description=player.name,
             value = self.list.index(player)) for player in self.list])
+    async def lostcard(self,target):
+        await target.user.dm_channel.send(f"You've lost {target.hand.cards[0].name}. Here is your new card:")
+        target.hand.add_card(self.game.deck.cards[0])
+        await target.user.dm_channel.send(file=discord.File("love-letter/"+str(target.hand.cards[-1].number)+".png"))
+        target.hand.cards.remove(target.hand.cards[0])
+        self.game.deck.cards.remove(self.game.deck.cards[0])
     async def callback(self,interaction):
         print(self.values[0])
         print(self.game.type)
@@ -115,8 +119,7 @@ class PlayerMenu(Select):
                 nwview.add_item(newselect)
                 await interaction.response.edit_message(content="Guess their role:", view=nwview)
             elif self.role == "priest":
-                await interaction.response.edit_message(content="Their role:", view=None)
-                await interaction.followup.send(file=discord.File("love-letter/"+str(target.hand.cards[0].number)+".png"))
+                await interaction.response.edit_message(content=f"Their role is {target.hand.cards[0].name}", view=None)
                 await self.game.take_turn(self.ctx)
             elif self.role == "baron":
                 if self.player.hand.cards[0].number > target.hand.cards[0].number:
@@ -128,6 +131,8 @@ class PlayerMenu(Select):
                     await interaction.response.edit_message(content="You drew!", view=None)
                     await target.user.dm_channel.send("Baron was used on you and you drew.")
                     await self.ctx.send(f"{self.player.display_name} used Baron on {target.display_name} and drew.")
+                    await self.lostcard(target)
+                    await self.lostcard(self.player)
                     await self.game.take_turn(self.ctx)
                 elif self.player.hand.cards[0].number < target.hand.cards[0].number:
                     await interaction.response.edit_message(content="You lost!", view=None)
@@ -141,11 +146,8 @@ class PlayerMenu(Select):
                     await target.user.dm_channel.send(f"You discarded the Princess and lost!")
                     await self.game.ll_eliminate_player(target,self.ctx)
                 else:
-                    await target.user.dm_channel.send(f"You've lost {target.hand.cards[0].name}. Here is your new card:")
-                    target.hand.add_card(self.game.deck.cards[0])
-                    await target.user.dm_channel.send(file=discord.File("love-letter/"+str(target.hand.cards[-1].number)+".png"))
+                    await self.lostcard(target)
                     await self.ctx.send(f"{target.display_name} was forced to discard a {target.hand.cards[0].name}.")
-                    target.hand.cards.remove(target.hand.cards[0])
                     await self.game.take_turn(self.ctx)
             elif self.role == "king":
                 yourcard, targetcard = self.player.hand.cards[0], target.hand.cards[0]
@@ -236,15 +238,24 @@ class DeckMenu(Select):
                 await self.game.take_turn(self.ctx)
         else: await interaction.response.edit_message(content="Hmm, we haven't coded this bit yet.", view=None)
 class LLCardMenu(Select):
-    def __init__(self, game, player, ctx):
+    def __init__(self, game, player, ctx, **kwargs):
         self.game = game
         self.player = player
         self.player.immune = False
         self.ctx = ctx
         self.user = self.player.user
-        super().__init__(placeholder="Choose a card to play!",
-        options=[discord.SelectOption(
-        label=card.name, description = card.description, value = self.player.hand.cards.index(card)) for card in self.player.hand.cards])
+        self.countess = kwargs.get("countess", False)
+        if self.countess:
+            for card in self.player.hand.cards:
+                if card.name == "Countess":
+                    p = self.player.hand.cards.index(card)
+            super().__init__(placeholder="Choose a card to play!",
+            options=[discord.SelectOption(
+            label="Countess", description = "You have a King or Prince, and must play Countess", value = p)])
+        else:
+            super().__init__(placeholder="Choose a card to play!",
+            options=[discord.SelectOption(label=card.name,
+            description = card.description, value = self.player.hand.cards.index(card)) for card in self.player.hand.cards])
     async def callback(self,interaction):
         chosen = self.player.hand.cards[int(self.values[0])]
         value = chosen.number
@@ -257,6 +268,81 @@ class LLCardMenu(Select):
             await self.ctx.send(f"{self.player.display_name} is playing a Guard.")
             await interaction.response.edit_message(content=f"Choose who to use your Guard on.",view=None)
             await interaction.followup.send("💂",view=nview)
+        elif value == 2:
+            select = PlayerMenu(self.game, self.player, 1, ctx=self.ctx,role="priest")
+            nview = View()
+            nview.add_item(select)
+            await self.ctx.send(f"{self.player.display_name} is playing a Priest.")
+            await interaction.response.edit_message(content=f"Choose who to use your Priest on.",view=None)
+            await interaction.followup.send("⛪",view=nview)
+        elif value == 3:
+            select = PlayerMenu(self.game, self.player, 1, ctx=self.ctx,role="baron")
+            nview = View()
+            nview.add_item(select)
+            await self.ctx.send(f"{self.player.display_name} is playing a Baron.")
+            await interaction.response.edit_message(content=f"Choose who to use your Baron on.",view=None)
+            await interaction.followup.send("🤴🏾",view=nview)
+        elif value == 4:
+            self.player.immune = True
+            await interaction.response.edit_message(content=f"You have discarded your Handmaid and are immune until your next turn.",view=None)
+            await self.ctx.send(f"{self.player.display_name} discarded their Handmaid, and is temporarily immune.")
+            await self.game.take_turn(self.ctx)
+        elif value == 5:
+            select = PlayerMenu(self.game, self.player, 1, ctx=self.ctx,role="prince")
+            nview = View()
+            nview.add_item(select)
+            await self.ctx.send(f"{self.player.display_name} is playing a Prince.")
+            await interaction.response.edit_message(content=f"Choose who to use your Prince on.",view=None)
+            await interaction.followup.send("⚜",view=nview)
+        elif value == 6:
+            select = PlayerMenu(self.game, self.player, 1, ctx=self.ctx,role="king")
+            nview = View()
+            nview.add_item(select)
+            await self.ctx.send(f"{self.player.display_name} is playing a King.")
+            await interaction.response.edit_message(content=f"Choose who to use your King on.",view=None)
+            await interaction.followup.send("👑",view=nview)
+        elif value == 7:
+            await interaction.response.edit_message(content=f"You have discarded your Countess.",view=None)
+            await self.ctx.send(f"{self.player.display_name} discarded their Countess.")
+            await self.game.take_turn(self.ctx)
+        elif value == 8:
+            await interaction.response.edit_message(content=f"You have discarded your Princess. You have lost!",view=None)
+            await self.ctx.send(f"{self.player.display_name} discarded their Princess, and lost.")
+            await self.game.ll_eliminate_player(self.player,self.ctx)
+#========================================================================================
+class ExpkCardMenu(Select):
+    def __init__(self, game, player, ctx, **kwargs):
+        self.game = game
+        self.player = player
+        self.ctx = ctx
+        self.user = self.player.user
+        self.init_options = [card for card in self.player.hand.cards if card.number in range(31,57) and not (card.number in range(36,41))]
+        self.pairs = self.game.check_cat_pairs(player)
+        if len(self.pairs) == 0:
+            super().__init__(placeholder="Choose a card to play!",
+            options=[discord.SelectOption(label=card.name, description = card.description,
+            value = self.player.hand.cards.index(card)) for card in self.init_options])
+        else:
+            super().__init__(placeholder="Choose a card to play!",
+            options=[discord.SelectOption(label=card.name, description = card.description,
+            value = self.player.hand.cards.index(card)) for card in self.init_options]
+            + [discord.SelectOption(label=pair.name, description = pair.description,
+            value = pair.value) for pair in self.pairs])
+    async def callback(self,interaction):
+        if int(self.values[0]) >= 100:
+            numbers = self.game.pairs[0].numbers
+                #index the player's hand by card numbers
+                #remove those corresponding to the numbers in the cat pair selected
+            #elif higher value: remove the correct ones
+        else:
+            chosen = self.player.hand.cards[int(self.values[0])]
+            value = chosen.number
+            self.player.hand.cards.remove(chosen)
+        if value in range(31,36):
+            #send them the top three cards in DMs.
+            await self.ctx.send(f"{self.player.display_name} is seeing the future.")
+            await interaction.response.edit_message(content=f"Here are the top three cards in the deck.",view=None)
+            await interaction.followup.send("merged top3cards image",view=None)
         elif value == 2:
             select = PlayerMenu(self.game, self.player, 1, ctx=self.ctx,role="priest")
             nview = View()

@@ -34,7 +34,7 @@ class SushiGoBot(commands.Cog):
         await ctx.send(f"Players: {', '.join(user.name for user in game.userdict.values())}. Let's play!")
         await ctx.send("Keep an eye on this channel and your DMs to know what's going on! And enjoy :)")
         lst = [user.name for user in game.userdict.values()]
-        for k in range(len(game.userdict.items())):
+        for k in range(len(game.userdict)):
             [name, i] = list(game.userdict.items())[k]
             game.add_players(i,name)
             await i.create_dm()

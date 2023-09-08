@@ -1,14 +1,61 @@
 import asyncio
 import discord
-from discord import File
-from discord.ext import commands
-from discord.ui import Button, View, Select
 from generaldicts import *
+from discord.ext import commands
+from generaldicts import *
+from discord.ui import Button, View
 from imagemerge import imagemergef
-import random
 from expkdicts import expk_name_to_num
 from cardmodule import keys_from_values, key_val_pairs
-
+class LoveLetterBot(commands.Cog):
+    def __init__(self,bot):
+        self.bot = bot
+    @commands.command()
+    async def lcoghi(self,ctx):
+        await ctx.send("hey, loveletter cog is working :D")
+    @commands.Cog.listener()
+    async def on_message_edit(self, before, after):
+        ctx = await self.bot.get_context(before)
+        if ctx.channel.type is discord.ChannelType.private: return
+        if after.content.startswith("Starting the game of Love Letter"):
+            print("edit", before.content)
+            await self.start_ll(ctx)
+#===============START THE GAME!!!!!!!=========================
+    async def start_ll(self,ctx):
+        channel_id = ctx.channel.id
+        game = open_games_dict[channel_id]
+        members = ctx.guild.members
+        p = 0
+        while p < len(members):
+            if members[p].id in game.userdict.keys():
+                game.userdict[members[p].display_name] = game.userdict[members[p].id]
+                del game.userdict[members[p].id]
+            p += 1
+        game.start_game()
+        game.setup_ll(playercount=len(game.userdict))
+        await ctx.send(f"Players: {', '.join(user.name for user in game.userdict.values())}. Let's play!")
+        await ctx.send(f"There are 5 Guards, 2 each of Priest, Baron, Handmaid and Prince, and one each of King, Countess and Princess.")
+        await ctx.send("Keep an eye on this channel and your DMs to know what's going on! And enjoy :)")
+        for k in range(len(game.userdict.items())):
+            [name, i] = list(game.userdict.items())[k]
+            game.add_players(i,name)
+            await i.create_dm()
+            await i.dm_channel.send("You joined the game of "+game.type)
+            await i.dm_channel.send("Your first card:")
+            game.draw_from_deck(i.id)
+            await i.dm_channel.send(file=discord.File("love-letter/"+str(game.hands[i.id].cards[0].number)+".png"))
+        await ctx.send("The initial cards have been sent out; if you have not received yours, speak up now.")
+        lst = [player.display_name for player in game.players]
+        print(str(lst))
+        game.alive_p = game.players[:]
+        if len(lst) == 2:
+            await ctx.send("There are only two players in the game, therefore, the top three cards will be drawn and revealed:")
+            imagemergef("top","love-letter", [game.deck.cards[k].number for k in range(3)])
+            for _ in range(3):game.deck.cards.remove(game.deck.cards[0])
+            await ctx.send(file=discord.File("love-letter/top-merged.jpg"))
+        await asyncio.sleep(2)
+        await game.take_turn(ctx)
+#========================================EXPLODING KITTENS!
 state = {
 "endturn": ["Stop dreaming buddy. I'm watching and you can't get past me.",
  "No can do!",
@@ -58,19 +105,7 @@ class ExpkBot(commands.Cog):
         await game.kitten(ctx)
 
 '''
-#========================================================
-#extra game functions
-async def turn():
-    global state
-    if state["attackcount"] == 0:
-        if len(state["player_list"]) > state["turncount"]:
-            state["turncount"] += 1
-        else:
-            state["turncount"] = 1
-        await state["channel_id"].send("It's now the turn of " + str(state["player_list"][state["turncount"]-1]))
-    else:
-        await state["channel_id"].send("One more turn left!")
-        state["attackcount"] -= 1
+
 #========================================================
 
 #GAME COMMANDS===========================================
