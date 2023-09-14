@@ -32,5 +32,6 @@ expk_cards_dict = {
 "Hairy Potato Cat": "It looks like a potato",
 "Beard Cat": "Some dude has a cat in his beard!",
 "Cattermelon": "Hack-thoop!",
-"Advanced options": "Card combos"
+"Advanced options": "Card combos",
+"Draw!": "End your turn by drawing a card."
 }

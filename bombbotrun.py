@@ -14,7 +14,6 @@ from onenightdicts import original, daybreak
 from llexpk import LoveLetterBot, ExpkBot
 from werewolf import OneNightBot
 from sushigo import SushiGoBot
-from expk import ExpkBot
 from buttons import ButtonBot, StartButton
 load_dotenv()
 TOKEN = os.getenv("TOKEN")
