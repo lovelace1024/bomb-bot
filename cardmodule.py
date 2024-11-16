@@ -1,22 +1,7 @@
 import enum
 from enum import Enum
 from onenightdicts import all_dicts
-
-card_name_to_num = {
-"exploding kitten": range(1,5),
-"defuse": range(5,11),
-"tacocat": range(11,15),
-"rainbow-ralphing cat": range(15,19),
-"hairy potato cat": range(19,23),
-"beard cat": range(23,27),
-"cattermelon": range(27,31),
-"see the future": range(31,36),
-"nope": range(36,41),
-"attack": range(41,45),
-"skip": range(45,49),
-"favor": range(49,53),
-"shuffle": range(53,57)
-}
+from expkdicts import expk_name_to_num, expk_cards_dict
 sushi_name_to_num = {
 "Chopsticks": 1,
 "Dumpling": 2,
@@ -117,7 +102,7 @@ def key_val_pairs(dict, values_list):
 
 def namenum(num, ctype, expansion):
     if ctype == "Exploding Kittens ":
-        return key_from_value(card_name_to_num, num)
+        return key_from_number(expk_name_to_num, num)
     elif ctype == "Love Letter ":
         return key_from_value(ll_name_to_num, num)
     elif ctype == "Sushi Go ":
@@ -130,6 +115,8 @@ def description(name, ctype):
         return ll_cards_dict[name]
     if ctype == "Sushi Go ":
         return sushi_cards_dict[name]
+    if ctype == "Exploding Kittens ":
+        return expk_cards_dict[name]
 
 class Status(Enum):
     IN_DECK = 0
@@ -148,5 +135,12 @@ class Card:
         self.name = namenum(number, ctype, expansion)
         self.description = description(self.name, ctype)
         self.status = Status.IN_DECK
+    def init_owner(self,user):
+        self.owner = user
 
-#print(namenum("cool"))
+class ExpkPair:
+    def __init__(self, name, value,numbers):
+        self.name = name
+        self.description = expk_cards_dict[name]
+        self.value = value
+        self.numbers = numbers

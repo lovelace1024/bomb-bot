@@ -1,0 +1,12 @@
+Love letter:
+  add running card total - FIX
+  what was guessed for guard - FIX
+  why three guards that time??
+  prince discard printed my new card instead of the old one - FIX
+
+Everything breaks because of the prince for some reason.
+=== hopefully FIXED?? Check
+For troubleshooting probably best to have a "view hand" option
+  (should be applicable for exploding kittens too)
+===
+CHECK viewing hand for LL and for expk that it goes to next turn smoothly

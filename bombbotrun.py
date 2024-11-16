@@ -11,10 +11,9 @@ from dotenv import load_dotenv
 from gameclass import Game, type_dict, expansions
 from cardmodule import key_from_value
 from onenightdicts import original, daybreak
-from loveletter import LoveLetterBot
+from llexpk import LoveLetterBot, ExpkBot
 from werewolf import OneNightBot
-from sushigo import SushiGoBot
-from youtubemusic import YouTubeBot
+from sushiskull import SushiGoBot, SkullBot
 from buttons import ButtonBot, StartButton
 load_dotenv()
 TOKEN = os.getenv("TOKEN")
@@ -23,11 +22,13 @@ bot = commands.Bot('++', intents=intents, self_bot = False)
 @bot.event
 async def on_ready():
     print('yippee')
-    await bot.add_cog(YouTubeBot(bot))
+    await bot.add_cog(ExpkBot(bot))
     await bot.add_cog(ButtonBot(bot))
     await bot.add_cog(OneNightBot(bot))
     await bot.add_cog(LoveLetterBot(bot))
     await bot.add_cog(SushiGoBot(bot))
+    await bot.add_cog(SkullBot(bot))
+
 #=========================================================
 #Talking stuff ------------------------------------------
 @bot.command(name='kaboom', help='Makes exploding noises')
@@ -71,15 +72,14 @@ async def dm(ctx):
     await ctx.message.delete()
 
 @bot.command(name="clear", help="delete the last n messages")
-async def clear(ctx, amount):
-    if ctx.message.author.server_permissions.administrator:
-        await ctx.message.channel.send("On it Boss! Explosion is the final form of art!")
-        asyncio.sleep(2)
-        amount = int(amount) + 2
-        await ctx.channel.purge(limit = amount)
-    else:
-        await ctx.message.channel.send("Those who have no power cannot rewrite history.")
-
+@commands.has_permissions(manage_messages = True)
+async def clear(ctx, amount: int):
+    await ctx.message.channel.send("On it Boss! Explosion is the final form of art!")
+    await asyncio.sleep(2)
+    await ctx.channel.purge(limit = amount+2)
+@bot.event
+async def on_message(m):
+    await bot.process_commands(m)
 
 #PARANOIA------------------------------------------------
 #========================================================
@@ -203,12 +203,6 @@ async def start_expk(ctx):
     for i in users:
         await i.create_dm()
         await i.dm_channel.send("You joined the game of "+game.type)
-
-
-
-
-#game-related actions------------------------------------
-#========================================================
 
 
 bot.run(TOKEN)

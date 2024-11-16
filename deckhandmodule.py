@@ -22,8 +22,11 @@ class Player:
         self.immune = False
         self.wincount = 0
         self.discardval = 0
+        self.mat = []
     def init_hand(self):
         self.hand = Hand(self.id,self.name)
+    def init_skull(self):
+        self.remaining = ["skull", "flower", "flower", "flower"]
 
 class Hand:
     def __init__(self, player_id,player_name):

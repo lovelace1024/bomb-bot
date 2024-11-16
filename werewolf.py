@@ -56,21 +56,18 @@ class OneNightBot(commands.Cog):
 
     async def narrate(self,ctx):
         channel_id = ctx.channel.id
-        if not (channel_id in open_games_dict.keys()):
-            return
         game = open_games_dict[channel_id]
         users = game.userdict.values()
         step = 0
         while step <= len(game.roleorder)-1:
-            if not (channel_id in open_games_dict.keys()):
-                return
+            if not (channel_id in open_games_dict.keys()): return
             game.void_player()
             await ctx.send(narrator_phrases[game.roleorder[step]])
             if game.check_table(game.roleorder[step]) == 1:
                 for player in game.players:
                     if player.hand.role == game.roleorder[step]:
+                        game.change_current_player(player.name,game.roleorder[step])
                         if game.roleorder[step] == "drunk":
-                            game.current_player = [player.name,"drunk"]
                             await player.user.create_dm()
                             select = CentreMenu(game, player.user, 1)
                             view = View()
@@ -78,7 +75,6 @@ class OneNightBot(commands.Cog):
                             await player.user.dm_channel.send("Choose a centre card to swap with!", view=view)
                             await asyncio.sleep(17)
                         elif game.roleorder[step] == "seer":
-                            game.current_player = [player.name,"seer"]
                             await player.user.create_dm()
                             button1 = PlayerMenuButton(game, 1)
                             button2 = CentreMenuButton(game, 2)
@@ -88,7 +84,6 @@ class OneNightBot(commands.Cog):
                             await player.user.dm_channel.send("You may view ONE other player's card or TWO centre cards.", view=view)
                             await asyncio.sleep(17)
                         elif game.roleorder[step] == "robber":
-                            game.current_player = [player.name,"robber"]
                             await player.user.create_dm()
                             select = PlayerMenu(game, player, 1)
                             view = View()
@@ -96,7 +91,6 @@ class OneNightBot(commands.Cog):
                             await player.user.dm_channel.send("Select a player to swap with!", view=view)
                             await asyncio.sleep(17)
                         elif game.roleorder[step] == "troublemaker":
-                            game.change_current_player(player.name,"troublemaker")
                             await player.user.create_dm()
                             select = PlayerMenu(game, player, 2)
                             view = View()

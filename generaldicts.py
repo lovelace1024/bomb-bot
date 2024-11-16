@@ -8,6 +8,7 @@ stopmessage_dict = {
 "onenight": 'A scorching sun suddenly rose, dispelling the night. The game stopped.',
 "vampire": 'The sudden glare of the sun turned all the players to dust, which softly scattered in the wind. The game stopped.',
 "hanabi": 'Fireworks went off in a beautiful display. Maybe a few stray explosions killed some people too. Who knows?',
-"ll": "The princess was bored of waiting for your letters and decided to make a Tinder profile. The game ends here, stop pursuing a princess and be content with what you have :)"
-"sushigo": "The restaurant closed for the night. Let the chef have some sleep, see you in the morning!"
+"ll": "The princess was bored of waiting for your letters and decided to make a Tinder profile. The game ends here, stop pursuing a princess and be content with what you have :)",
+"sushigo": "The restaurant closed for the night. Let the chef have some sleep, see you in the morning!",
+"skull": "The bones rattled in the graveyard, then all became quiet... we'll explore another day!"
 }

@@ -1,122 +1,64 @@
-# bot.py
-import os
 import asyncio
 import discord
 from discord import File
 from discord.ext import commands
-from discord.ext.commands import Bot
+from discord.ui import Button, View, Select
+from generaldicts import *
+from imagemerge import imagemergef
 import random
-import datetime
-from dotenv import load_dotenv
-load_dotenv()
-TOKEN = os.getenv("TOKEN")
-
-cards_dict = {"pair": 20, "stf":5, "np": 5, "skp":4, "fv":4, "shf":4, "atk": 4}
-players_dict = {"player1_cards":[], "player2_cards":[], "player3_cards":[],
-"player4_cards":[], "player5_cards": []}
+from expkdicts import expk_name_to_num
+from cardmodule import keys_from_values, key_val_pairs
 
 state = {
-"opencounter": 0,
-"message_id": 1,
-"channel_id": 1,
-"player_set": set(),
-"player_list": [],
-# cards we'll be playing with
-#dfe: 6
-"cardtypes": list(cards_dict.values()),
-"expk": 0,
-"cardnum":0, "num": 0,
-"cardlists": [x for x in players_dict.keys()],
-"turncount": 1,
-"attackcount":0, "nopecount":0, "nopetrigger":0, "actioncount": 0,
-"numlist": [],
 "endturn": ["Stop dreaming buddy. I'm watching and you can't get past me.",
  "No can do!",
 "You haven't awakened the psychic power, wait your turn.",
 "**I refuse this course of action**"]
 }
 
-card_name_to_num = {
-"exploding kitten": range(1,5),
-"defuse": range(5,11),
-"tacocat": range(11,15),
-"rainbow-ralphing cat": range(15,19),
-"hairy potato cat": range(19,23),
-"beard cat": range(23,27),
-"cattermelon": range(27,31),
-"see the future": range(31,36),
-"nope": range(36,41),
-"attack": range(41,45),
-"skip": range(45,49),
-"favor": range(49,53),
-"shuffle": range(53,57)
-}
+class ExpkBot(commands.Cog):
+    def __init__(self,bot):
+        self.bot = bot
+    @commands.Cog.listener()
+    async def on_message_edit(self, before, after):
+        ctx = await self.bot.get_context(before)
+        if after.content.startswith("Starting the game of Exploding Kittens"):
+            print("edit", before.content)
+            await self.start_expk(ctx)
+    async def ecoghi(self,ctx):
+        await ctx.send("hey, cog is working :D")
+#===============START THE GAME!!!!!!!=========================
+    async def start_expk(self,ctx):
+        channel_id = ctx.channel.id
+        game = open_games_dict[channel_id]
+        members = ctx.guild.members
+        p = 0
+        while p < len(members):
+            if members[p].id in game.userdict.keys():
+                game.userdict[members[p].display_name] = game.userdict[members[p].id]
+                del game.userdict[members[p].id]
+            p += 1
+        game.start_game()
+        game.setup_expk(playercount=len(game.userdict))
+        await ctx.send(f"Players: {', '.join(user.name for user in game.userdict.values())}. Let's play!")
+        for k in range(len(game.userdict)):
+            [name, i] = list(game.userdict.items())[k]
+            game.add_players(i,name)
+            await i.create_dm()
+            await i.dm_channel.send("You joined the game of "+game.type)
+            await i.dm_channel.send("Your initial hand:")
+            for _ in range(4):
+                game.draw_from_deck(i.id)
+            game.draw_defuse(i.id)
+            imagemergef(name,"expk", [game.hands[i.id].cards[k].number for k in range(5)])
+            await i.dm_channel.send(file=discord.File(f"expk/{name}-merged.jpg"))
+        await ctx.send("The initial hands have been given; if you have not received yours, speak up now.")
+        game.fill_deck()
+        await asyncio.sleep(2)
+        await game.kitten(ctx)
 
-bot = Bot('$')
-@bot.event
-async def on_ready():
-    print('yippee')
+'''
 #========================================================
-#Getting info from the dictionary------------------------
-def keys_from_values(dict, values_list):
-    keys_list = list()
-    items_list = dict.items()
-    for item  in items_list:
-        for k in values_list:
-            if k in item[1]:
-                keys_list.append(item[0])
-    return  keys_list
-def key_val_pairs(dict, values_list):
-    pairs_list = list()
-    items_list = dict.items()
-    for item  in items_list:
-        if item[1] in values_list:
-            pairs_list.append(item)
-    return  pairs_list
-
-@bot.command(name="namenum")
-async def namenum(ctx):
-    print(keys_from_values(card_name_to_num, [1,2,3]))
-
-#========================================================
-#Talking stuff ------------------------------------------
-@bot.command(name='kaboom', help='Makes exploding noises')
-async def explode(ctx):
-    explode = [
-        'munch, munch, BANG!',
-        'launch atomic bomb? y/n',
-	'*furiously gnaws dynamite*'
-    ]
-
-    response = random.choice(explode)
-    await ctx.send(response)
-
-@bot.command(name='greet', help='greets a person')
-async def greet(ctx, user: discord.User):
-    await ctx.send('Hello {}!'.format(user.mention))
-@bot.command()
-async def sun(ctx):
-    for i in ctx.message.mentions:
-        await i.create_dm()
-        await i.dm_channel.send(file=discord.File("/home/naomi/DiscordBot/sun.jpeg"))
-@bot.command()
-async def author(ctx):
-    await ctx.send(ctx.message.author.name)
-@bot.command()
-async def bang(ctx):
-    for i in ctx.message.mentions:
-        await ctx.message.channel.send(i.name + "exploded")
-@bot.command(name='dm', help='sends a sneaky msg to @someone')
-async def dm(ctx):
-    for i in ctx.message.mentions:
-        await i.create_dm()
-        await i.dm_channel.send("boom boom want u in my room")
-    await ctx.message.delete()
-@bot.command()
-async def clear(ctx, amount):
-    amount = int(amount) + 1
-    await ctx.channel.purge(limit = amount)
-#--------------------------------------------------------
 #extra game functions
 async def turn():
     global state
@@ -129,38 +71,9 @@ async def turn():
     else:
         await state["channel_id"].send("One more turn left!")
         state["attackcount"] -= 1
-async def stop():
-    global state
-    state["opencounter"] -=1
-    state["player_set"] = set()
-    state["cardnum"] = 0
 #========================================================
 
 #GAME COMMANDS===========================================
-#setting up the game-------------------------------------
-
-@bot.command(name='open', help='Opens a new game of exploding kittens.')
-async def open(ctx):
-    global state
-    if state["opencounter"] == 0:
-        message = await ctx.send('A new game of Exploding Kittens has been opened by' + ctx.message.author.name + '. React to join (2-5 players)')
-        state["message_id"] = message.id
-        state["channel_id"] = ctx.channel
-        state["opencounter"] +=1
-    else:
-        await ctx.send('Game already in progress! You snooze, you lose :P')
-@bot.event
-async def on_reaction_add(reaction, user: discord.User):
-    global state
-    if reaction.message.id == state["message_id"]:
-        async for user in reaction.users():
-            state["player_set"].add(user)
-
-@bot.command(name="stop", help="forcefully stop an opened game")
-async def shut(ctx):
-    await stop()
-    await ctx.send('The Spanish Inquisition received a tip-off that large amounts of explosives and enchiladas were being gathered in this channel. The game has forcefully been stopped!')
-    state["opencounter"] = 0
 #game-related actions------------------------------------
 #========================================================
 @bot.command(name="hand", help="DM the bot to find out what cards are in your hand!")
@@ -168,7 +81,7 @@ async def hand(ctx):
     if ctx.message.author in state["player_list"]:
         i = ctx.message.author
         index = state["player_list"].index(i)
-        card_names = keys_from_values(card_name_to_num, state["cardlists"][index])
+        card_names = keys_from_values(expk_name_to_num, state["cardlists"][index])
         await i.create_dm()
         await i.dm_channel.send(f"List of your cards: {', '.join(str(k) for k in card_names)}.")
 
@@ -181,7 +94,7 @@ async def give(ctx, number: int):
             state["cardlists"][state["turncount"]-1].append(number)
             await state["player_list"][state["turncount"]-1].create_dm()
             await state["player_list"][state["turncount"]-1].dm_channel.send("the following is your new card!")
-            await state["player_list"][state["turncount"]-1].dm_channel.send(file=discord.File("/home/naomi/DiscordBot/expk-cards/" + str(number) + ".jpg"))
+            await state["player_list"][state["turncount"]-1].dm_channel.send(file=discord.File("/home/naomi/DiscordBot/expk/" + str(number) + ".jpg"))
             state["num"] = 0
         else:
             await ctx.send("pfft you joker! You don't have that one!")
@@ -228,7 +141,7 @@ async def start(ctx):
             state["cardlists"][k].append(state["numlist"][k+5])
             await state["player_list"][k].create_dm()
             for i in state["cardlists"][k]:
-                await state["player_list"][k].dm_channel.send(file=discord.File("/home/naomi/DiscordBot/expk-cards/" + str(i) + ".jpg"))
+                await state["player_list"][k].dm_channel.send(file=discord.File("/home/naomi/DiscordBot/expk/" + str(i) + ".jpg"))
         del state["numlist"][0:4*len(state["player_set"])]
         for x in range (len(state["player_set"])-1):
             state["numlist"].insert(random.randint(0,len(state["numlist"])), x+1)
@@ -263,7 +176,7 @@ async def draw(ctx):
         else:
             state["cardlists"][state["turncount"]-1].append(state["numlist"][0])
             await state["player_list"][state["turncount"]-1].create_dm()
-            await state["player_list"][state["turncount"]-1].dm_channel.send(file=discord.File("/home/naomi/DiscordBot/expk-cards/" + str(state["numlist"][0]) + ".jpg"))
+            await state["player_list"][state["turncount"]-1].dm_channel.send(file=discord.File("/home/naomi/DiscordBot/expk/" + str(state["numlist"][0]) + ".jpg"))
             del state["numlist"][0]
             await turn()
     else:
@@ -370,7 +283,7 @@ async def favor(ctx):
                         if i in state["player_list"] and i != state["player_list"][state["turncount"]-1]:
                             state["num"] = state["player_list"].index(i) + 1
                             await i.create_dm()
-                            card_numbers = key_val_pairs(card_name_to_num, state["cardlists"][state["num"]-1])
+                            card_numbers = key_val_pairs(expk_name_to_num, state["cardlists"][state["num"]-1])
                             for x in state["cardlists"][state["num"]-1]:
                                 await i.dm_channel.send("You have card number "+x)
                             await i.dm_channel.send("Type $give followed by a number to indicate which card of yours to share.")
@@ -399,7 +312,7 @@ async def seethefuture(ctx):
                 if x in state["cardlists"][state["turncount"]-1]:
                     state["cardlists"][state["turncount"]-1].remove(x)
                     await state["player_list"][state["turncount"]-1].create_dm()
-                    top_cards = keys_from_values(card_name_to_num, state["numlist"][0:3])
+                    top_cards = keys_from_values(expk_name_to_num, state["numlist"][0:3])
                     await state["player_list"][state["turncount"]-1].dm_channel.send(f"here are the top 3 cards in order from the top: {','.join(str(k) for k in top_cards)}.")
                     break
                 else:
@@ -468,10 +381,10 @@ async def pair(ctx, user):
                     k = random.choice(state["cardlists"][index])
                     state["cardlists"][index].remove(k)
                     await state["player_list"][index].create_dm()
-                    await state["player_list"][index].dm_channel.send("you lost:" + str(i for i in keys_from_values(card_name_to_num, [k])))
+                    await state["player_list"][index].dm_channel.send("you lost:" + str(i for i in keys_from_values(expk_name_to_num, [k])))
                     state["cardlists"][state["turncount"]-1].append(k)
                     await state["player_list"][state["turncount"]-1].create_dm()
-                    await state["player_list"][state["turncount"]-1].dm_channel.send("you got:" + str(i for i in keys_from_values(card_name_to_num, [k])))
+                    await state["player_list"][state["turncount"]-1].dm_channel.send("you got:" + str(i for i in keys_from_values(expk_name_to_num, [k])))
                 else:
                     await ctx.send("Sorry that's not allowed!")
         else:
@@ -479,5 +392,4 @@ async def pair(ctx, user):
             state["nopecount"] = 0
     else:
         await ctx.send(random.choice(state["endturn"]))
-#--------------------------------------------------------
-bot.run(TOKEN)
+#--------------------------------------------------------'''

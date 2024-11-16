@@ -1,0 +1,37 @@
+expk_name_to_num = {
+"Exploding Kitten": range(1,5),
+"Defuse": range(5,11),
+"Tacocat": range(11,15),
+"Rainbow-ralphing Cat": range(15,19),
+"Hairy Potato Cat": range(19,23),
+"Beard Cat": range(23,27),
+"Cattermelon": range(27,31),
+"See The Future": range(31,36),
+"Nope": range(36,41),
+"Attack": range(41,45),
+"Skip": range(45,49),
+"Favor": range(49,53),
+"Shuffle": range(53,57)
+}
+expk_cards_dict = {
+"See The Future": "Look at the top three cards in the deck",
+"Attack": "End your turn without drawing a card and force the next player to take two turns",
+"Skip": "End your turn without drawing a card",
+"Favor": "Ask another player for a card of their choice",
+"Shuffle": "Shuffle the deck",
+"Exploding Kitten": "Unless you have a streaking kitten, this is confusing",
+"Defuse": "Avoid dying from an explosion!",
+"Nope": "Prevent an action from happening",
+"Tacocat pair": "Pick a random card from any player",
+"Rainbow-ralphing Cat pair": "Pick a random card from any player",
+"Hairy Potato Cat pair": "Pick a random card from any player",
+"Beard Cat pair": "Pick a random card from any player",
+"Cattermelon pair": "Pick a random card from any player",
+"Tacocat": "I am a palindrome!",
+"Rainbow-ralphing Cat": "HRNNGGGG!",
+"Hairy Potato Cat": "It looks like a potato",
+"Beard Cat": "Some dude has a cat in his beard!",
+"Cattermelon": "Hack-thoop!",
+"Advanced options": "Card combos",
+"Draw!": "End your turn by drawing a card."
+}
