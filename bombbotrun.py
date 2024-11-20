@@ -15,6 +15,8 @@ from llexpk import LoveLetterBot, ExpkBot
 from werewolf import OneNightBot
 from sushiskull import SushiGoBot, SkullBot
 from buttons import ButtonBot, StartButton
+from scrape_widget_1 import scrape_link, hpwidgetlink
+from pagination import PaginationView
 load_dotenv()
 TOKEN = os.getenv("TOKEN")
 intents = discord.Intents().all()
@@ -80,7 +82,46 @@ async def clear(ctx, amount: int):
 @bot.event
 async def on_message(m):
     await bot.process_commands(m)
+#========================== HEBREW WOTD
+@bot.command(name="wotd")
+async def paginate(ctx):
+    i, wotd, titromtxt, titvowtxt, deftxt, art, heb, rom, eng, vow = scrape_link(hpwidgetlink)
+    exno = len(heb)
+    pdicts = [{"Romanisation": titromtxt, "Niqqud": titvowtxt, "Part of speech?":art}]
+    ex1, exh, qzm = {}, {}, {}
+    qzm["WORD"] = wotd
+    for k in range(exno):
+        ex1[f"EXAMPLE {k+1}"]=vow[k]
+        ex1[f"ENGLISH {k+1}"]=eng[k]
+        exh[f"EXAMPLE {k+1}"]=heb[k]
+        exh[f"ROMANISATION {k+1}"]=rom[k]
+        qzm[f"EXAMPLE {k+1}"]=heb[k]
+    for x in [ex1, exh, qzm]: pdicts.append(x)
+    pagination_view = PaginationView(pdicts,"WORD OF THE DAY: "+wotd, deftxt,i, timeout=None)
+    await pagination_view.send(ctx)
+@bot.command(name="ping", help="embed test")
+async def ping(ctx):
+    pfp = ctx.author.display_avatar
+    i, wotd, titromtxt, titvowtxt, deftxt, art, heb, rom, eng, vow = scrape_link(hpwidgetlink)
+    exno = len(heb)
+    embed = discord.Embed(
+    colour=discord.Colour.dark_teal(),
+    description="DEFINITION: "+deftxt,
+    title="WORD OF THE DAY: "+wotd)
 
+    embed.set_footer(text="Happy Hebrew learning!")
+    embed.set_author(name="HebrewPod101", url="https://www.hebrewpod101.com/", icon_url="https://i.imgur.com/zbQytfg.jpeg")
+    embed.set_thumbnail(url="https://cdn-icons-png.flaticon.com/512/197/197577.png")
+    embed.set_image(url=i)
+    embed.add_field(name="Romanisation", value=titromtxt)
+    embed.insert_field_at(1,name="Niqqud", value=titvowtxt)
+    embed.insert_field_at(2,name="Part of speech?", value=art)
+    for k in range(1, exno+1):
+        embed.insert_field_at(2*k+1,name=f"EXAMPLE {k}", value=heb[k-1], inline=False)
+        embed.insert_field_at(2*k+2,name=f"ENGLISH {k}", value=eng[k-1], inline=True)
+    embed.add_field(name="Embed WOTD widget on your website!", value="https://www.innovativelanguage.com/widgets/wotd", inline=False)
+
+    await ctx.send(embed=embed)
 #PARANOIA------------------------------------------------
 #========================================================
 @bot.command(name='paranoia', help='Opens a new game of paranoia.')
